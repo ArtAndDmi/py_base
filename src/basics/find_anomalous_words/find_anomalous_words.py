@@ -1,11 +1,14 @@
 def find_anomalous_words(text: str) -> list[str]:
-    """
-    Находит слова, длина которых отличается от средней длины слов в тексте более чем на 2 символа.
+    if  text == '':
+        return []
 
-    
+    word_list = ''.join(c for c in text if c.isalpha() or c == ' ').split()
+    avg_len = sum(len(s) for s in word_list) / len(word_list)
+    res = []
 
-    :param text: Входная строка.
-    :return: Список аномальных слов.
-    """
-    # TODO: Реализуйте функцию
-    pass
+    for w in word_list:
+        print(len(w))
+        if abs(len(w) - avg_len) >= 2:
+            res.append(w)
+
+    return res
