@@ -1,21 +1,22 @@
-def pack_boxes(items, limit):
-    """
-    Упаковывает предметы в коробки, не превышая лимит веса.
-    Предметы упаковываются в порядке следования.
-    Предметы, превышающие лимит, исключаются из результата.
-    
-    Алгоритм:
-    1. Фильтруем предметы, исключая те, что превышают лимит
-    2. Инициализируем пустой список для коробок
-    3. Для каждого предмета:
-       - Если текущая коробка пуста или добавление предмета не превысит лимит,
-         добавляем предмет в текущую коробку
-       - Иначе, создаем новую коробку и добавляем туда предмет
-    4. Возвращаем список коробок
-    
-    :param items: Список весов предметов
-    :param limit: Максимальный вес коробки
-    :return: Список коробок (список списков)
-    """
-    # TODO: Реализуйте функцию
-    pass
+def pack_boxes(items: list[int], limit: int) -> list[list[int]]:
+    items = [x for x in items if x <= limit]
+    res = []
+    counter = 0
+    sub_items = []
+
+    if len(items) == 0:
+        return []
+
+    for i in range(len(items)):
+
+        if counter + items[i] <= limit:
+            counter += items[i]
+            sub_items.append(items[i])
+        else:
+            res.append(sub_items)
+            sub_items = [items[i]]
+            counter = items[i]
+    res.append(sub_items)
+    return res
+
+
