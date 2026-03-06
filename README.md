@@ -1,4 +1,4 @@
-# python-practice
+uv# python-practice
 
 ## Как начать работу
 
