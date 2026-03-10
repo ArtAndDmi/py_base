@@ -1,6 +1,5 @@
 from typing import List, Dict
 from pydantic import BaseModel
-import pandas
 import json
 from collections import defaultdict
 
@@ -103,7 +102,6 @@ def print_results(analysis: Dict):
 
 # Пример использования
 if __name__ == "__main__":
-    print('zalupa')
-    analyzer = load_data("/products.json", "/customers.json", "/orders.json")
+    analyzer = load_data("products.json", "customers.json", "orders.json")
     analysis = analyzer.analyze()
     print_results(analysis)

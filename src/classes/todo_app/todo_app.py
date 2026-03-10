@@ -1,146 +1,83 @@
-import os
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 from pathlib import Path
 
 from src.classes.todo_app.models.task import Task
-from src.classes.todo_app.models.category import Category
-from src.classes.todo_app.models.status import Status
 from src.classes.todo_app.repositories.task_repository import TaskRepository
 from src.classes.todo_app.repositories.category_repository import CategoryRepository
 from src.classes.todo_app.repositories.status_repository import StatusRepository
 
 
 class TodoApp:
-    """
-    Основной класс приложения для управления задачами.
-    Предоставляет доступ к репозиториям и методы с бизнес-логикой.
-    """
+    dir_path = Path
+    CATEGORIES_PATH = 'categories.json'
+    STATUSES_PATH = 'statuses.json'
+    TASKS_PATH = 'tasks.json'
     
     def __init__(self, data_dir: str):
-        """
-        Инициализация приложения.
-        
-        Args:
-            data_dir: Путь к директории с JSON файлами данных
-        """
-        # TODO: Реализуйте инициализацию
-        # Создайте репозитории и сохраните их как атрибуты:
-        # self.task_repo = TaskRepository(...)
-        # self.category_repo = CategoryRepository(...)
-        # self.status_repo = StatusRepository(...)
-        pass
+        base_dir = Path(data_dir).resolve()
+
+        self.dir_path = base_dir
+        self.task_repo = TaskRepository(str(base_dir / self.TASKS_PATH))
+        self.category_repo = CategoryRepository(str(base_dir / self.CATEGORIES_PATH))
+        self.status_repo = StatusRepository(str(base_dir / self.STATUSES_PATH))
+
     
     def add_task(self, title: str, category_id: int, status_id: int, **kwargs) -> Task:
-        """
-        Добавить новую задачу с проверкой существования категории и статуса.
-        
-        Args:
-            title: Заголовок задачи
-            category_id: ID категории
-            status_id: ID статуса
-            **kwargs: Дополнительные параметры (description, deadline, repeat_every)
-            
-        Returns:
-            Созданная задача
-            
-        Raises:
-            ValueError: Если категория или статус не существуют
-        """
-        # TODO: Реализуйте добавление задачи
-        # 1. Проверьте существование категории и статуса
-        # 2. Получите следующий ID для задачи
-        # 3. Создайте задачу и добавьте её через репозиторий
-        pass
+        if self.status_repo.get(status_id) and self.category_repo.get(category_id):
+            new_task = Task(
+                id=kwargs['id'],
+                title=title,
+                category_id=category_id,
+                status_id=status_id,
+                **kwargs
+            )
+
+            self.task_repo.add(new_task)
+            return new_task
+        else:
+            raise ValueError("Категория или статус не существуют")
+
     
     def mark_task_done(self, task_id: int) -> bool:
-        """
-        Отметить задачу как выполненную.
-        
-        Args:
-            task_id: ID задачи
-            
-        Returns:
-            True, если задача обновлена, False если не найдена
-        """
-        # TODO: Реализуйте отметку задачи как выполненной
-        pass
+        if self.task_repo.get(task_id):
+            self.task_repo.update(id_=task_id, is_done=True)
+            return True
+        return False
+
     
     def get_overdue_tasks(self) -> List[Task]:
-        """
-        Получить просроченные задачи.
-        
-        Returns:
-            Список задач с истекшим дедлайном
-        """
-        # TODO: Реализуйте получение просроченных задач
-        # Получите все задачи и отфильтруйте те, у которых:
-        # - есть дедлайн
-        # - дедлайн истек (меньше текущего времени)
-        # - задача не выполнена
-        pass
+        res = []
+        tasks = self.task_repo._data
+        for task_id in tasks:
+            deadline_str = tasks[task_id]['deadline']
+            if (
+                deadline_str is not None
+                and datetime.fromisoformat(deadline_str) < datetime.now()
+                and tasks[task_id]["is done"] is False
+            ):
+                res.append(tasks[task_id])
+        return res
+
 
 
 def load_sample_data(app: TodoApp) -> None:
-    """
-    Загрузить примерные данные в приложение.
-    
-    Args:
-        app: Экземпляр TodoApp
-    """
-    # TODO: Реализуйте загрузку примерных данных
-    # Добавьте категории, статусы и примерные задачи
-    pass
+    app.status_repo._load()
+    app.category_repo._load()
+    app.task_repo._load()
 
 
 def print_task(task: Task) -> None:
-    """
-    Вывести информацию о задаче.
-    
-    Args:
-        task: Задача для вывода
-    """
-    # TODO: Реализуйте вывод информации о задаче
-    pass
+    print('Название:', task['title'])
+    print('Описание:', task['description'])
+    print('ID Категории:', task['category_id'])
+    print('ID Статуса:', task['status_id'])
+    print('Выполнена:', 'Да' if task['is_done'] else 'Нет')
+    print('Дедлайн:', task['deadline'])
 
 
 def print_tasks(tasks: List[Task]) -> None:
-    """
-    Вывести список задач.
-    
-    Args:
-        tasks: Список задач для вывода
-    """
-    # TODO: Реализуйте вывод списка задач
-    pass
+    for task in tasks:
+        print_task(task)
+        print()
 
-
-if __name__ == "__main__":
-    # Пример использования
-    app = TodoApp("src/classes/todo_app/data")
-    
-    # Загружаем примерные данные
-    load_sample_data(app)
-    
-    print("=== Все задачи ===")
-    # Теперь работаем с репозиторием напрямую
-    all_tasks = app.task_repo.get_all()
-    print_tasks(all_tasks)
-    
-    print("\n=== Задачи по категории 'Учеба' ===")
-    study_tasks = app.task_repo.get_by_category(3)
-    print_tasks(study_tasks)
-    
-    print("\n=== Просроченные задачи ===")
-    overdue_tasks = app.get_overdue_tasks()
-    print_tasks(overdue_tasks)
-    
-    # Добавляем новую задачу через высокоуровневый API
-    print("\n=== Добавляем новую задачу ===")
-    new_task = app.add_task(
-        title="Новая задача",
-        category_id=1,
-        status_id=1,
-        description="Это новая задача для демонстрации"
-    )
-    print_task(new_task) 
